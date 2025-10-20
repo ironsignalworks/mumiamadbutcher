@@ -489,8 +489,8 @@
       });
     })();
     
-    /* ===================== Portfolio Lightbox with Zoom ===================== */
-    /* IMPORTANT: run after DOM is fully parsed so #lightbox exists */
+    /* ===================== Portfolio Lightbox with Zoom + Gallery Nav ===================== */
+    /* Run after DOM so #lightbox exists */
     window.addEventListener('DOMContentLoaded', function(){
       const tiles = Array.from(document.querySelectorAll('.grid .tile'));
       const lb = document.getElementById('lightbox');
@@ -504,6 +504,24 @@
     
       if(!lb || !img || !vp) return;
     
+      // ---- add prev/next controls dynamically (no HTML changes needed) ----
+      const prevBtn = document.createElement('button');
+      const nextBtn = document.createElement('button');
+      Object.assign(prevBtn, { type:'button' });
+      Object.assign(nextBtn, { type:'button' });
+      prevBtn.setAttribute('aria-label','Previous image');
+      nextBtn.setAttribute('aria-label','Next image');
+      prevBtn.textContent = '‹';
+      nextBtn.textContent = '›';
+      const sharedBtnStyle = 'position:absolute;top:50%;transform:translateY(-50%);' +
+        'background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.2);' +
+        'color:#e8e8e8;font-size:26px;line-height:1;padding:10px 14px;border-radius:10px;' +
+        'cursor:pointer;z-index:4;user-select:none;';
+      prevBtn.style.cssText = sharedBtnStyle + 'left:10px;';
+      nextBtn.style.cssText = sharedBtnStyle + 'right:10px;';
+      const inner = lb.querySelector('.lightbox-inner');
+      if(inner){ inner.appendChild(prevBtn); inner.appendChild(nextBtn); }
+    
       // ----- state -----
       let baseScale = 1;     // fit-to-viewport scale (minimum)
       let scale = 1;         // current scale
@@ -511,37 +529,55 @@
       const maxScale = 6;    // multiplied by baseScale
       let dragging = false, sx=0, sy=0, stx=0, sty=0;
       let lastTap = 0;
+      let current = -1;      // index into tiles[]
     
-        // Replace your existing clampPan with this version
-        function clampPan(ns, ntx, nty){
+      // Helpers to read tile src/caption
+      function srcFromTile(i){
+        const ph = tiles[i]?.querySelector('.ph');
+        const bg = ph && (ph.style.backgroundImage || getComputedStyle(ph).backgroundImage);
+        const m = bg && bg.match(/url\(["']?(.*?)["']?\)/);
+        return m ? m[1] : null;
+      }
+      function captionFromTile(i){
+        return (tiles[i]?.querySelector('.meta')||{}).textContent || '';
+      }
+    
+      // Preload neighbor images
+      function preload(i){
+        if(i<0 || i>=tiles.length) return;
+        const s = srcFromTile(i);
+        if(!s) return;
+        const im = new Image();
+        im.src = s;
+      }
+    
+      // Centering + clamping (draggable at any scale, but no gaps)
+      function clampPan(ns, ntx, nty){
         const vw = vp.clientWidth, vh = vp.clientHeight;
         const iw = img.naturalWidth * ns;
         const ih = img.naturalHeight * ns;
-
+    
         const lockX = iw <= vw;
         const lockY = ih <= vh;
-
-        // If image is smaller than viewport on an axis, center it
+    
         if (lockX) {
-            ntx = (vw - iw) / 2;
+          ntx = (vw - iw) / 2;
         } else {
-            // Otherwise clamp so you can't drag past edges
-            const minX = vw - iw; // negative
-            const maxX = 0;
-            ntx = Math.max(minX, Math.min(maxX, ntx));
+          const minX = vw - iw; // negative
+          const maxX = 0;
+          ntx = Math.max(minX, Math.min(maxX, ntx));
         }
-
+    
         if (lockY) {
-            nty = (vh - ih) / 2;
+          nty = (vh - ih) / 2;
         } else {
-            const minY = vh - ih; // negative
-            const maxY = 0;
-            nty = Math.max(minY, Math.min(maxY, nty));
+          const minY = vh - ih; // negative
+          const maxY = 0;
+          nty = Math.max(minY, Math.min(maxY, nty));
         }
-
+    
         return [ntx, nty];
-        }
-
+      }
     
       function apply(nxScale=scale, nx=tx, ny=ty){
         scale = Math.max(baseScale, Math.min(maxScale*baseScale, nxScale));
@@ -555,7 +591,6 @@
         const iw = img.naturalWidth, ih = img.naturalHeight;
         baseScale = Math.min(vw/iw, vh/ih);
         if(!isFinite(baseScale) || baseScale<=0) baseScale = 1;
-        // Start centered and draggable immediately
         const cx = (vw - iw*baseScale)/2;
         const cy = (vh - ih*baseScale)/2;
         apply(baseScale, cx, cy);
@@ -573,6 +608,18 @@
         cap && (cap.textContent = caption || '');
         lb.removeAttribute('hidden');
         document.body.style.overflow='hidden';
+      }
+    
+      function openByIndex(i){
+        if(i<0) i = tiles.length - 1;
+        if(i>=tiles.length) i = 0;
+        current = i;
+        const src = srcFromTile(current);
+        if(!src) return;
+        open(src, captionFromTile(current));
+        // Preload neighbors
+        preload((current+1)%tiles.length);
+        preload((current-1+tiles.length)%tiles.length);
       }
     
       function close(){
@@ -600,35 +647,45 @@
       }
     
       // ----- open from tiles -----
-      tiles.forEach(tile=>{
-        tile.addEventListener('click',()=>{
-          const ph = tile.querySelector('.ph');
-          const bg = ph && ph.style.backgroundImage;
-          const match = bg && bg.match(/url\(["']?(.*?)["']?\)/);
-          const src = match ? match[1] : null;
-          const caption = (tile.querySelector('.meta')||{}).textContent || '';
-          if(src) open(src, caption);
-        });
-        tile.addEventListener('keydown',(e)=>{
-          if(e.key==='Enter' || e.key===' '){ e.preventDefault(); tile.click(); }
-        });
+      tiles.forEach((tile, i)=>{
+        tile.addEventListener('click',()=> openByIndex(i));
+        tile.addEventListener('keydown',(e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openByIndex(i); }});
       });
     
       // ----- close interactions -----
       closeBtn && closeBtn.addEventListener('click', close);
       document.addEventListener('keydown', (e)=>{ if(!lb.hasAttribute('hidden') && e.key==='Escape') close(); });
-    
-      // Close on outside pointer (touch/mouse) anywhere outside the modal
+      // Close on outside pointer (touch/mouse)
       lb.addEventListener('pointerdown', (e)=>{
         const inner = lb.querySelector('.lightbox-inner');
         if (inner && !inner.contains(e.target)) close();
       });
     
-      // ----- wheel + buttons -----
+      // ----- prev/next handlers -----
+      function goPrev(){ if(lb.hasAttribute('hidden')) return; openByIndex(current-1); }
+      function goNext(){ if(lb.hasAttribute('hidden')) return; openByIndex(current+1); }
+      prevBtn.addEventListener('click', (e)=>{ e.stopPropagation(); goPrev(); });
+      nextBtn.addEventListener('click', (e)=>{ e.stopPropagation(); goNext(); });
+    
+      // Keyboard arrows navigate
+      document.addEventListener('keydown', (e)=>{
+        if(lb.hasAttribute('hidden')) return;
+        if(e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+        if(e.key === 'ArrowRight'){ e.preventDefault(); goNext(); }
+      });
+    
+      // ----- wheel / trackpad: pan; Ctrl/Cmd + wheel: zoom -----
       vp.addEventListener('wheel', (e)=>{
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          const dz = e.deltaY < 0 ? 1.15 : 0.87;
+          zoomAt(e.clientX, e.clientY, dz);
+          return;
+        }
         e.preventDefault();
-        const dz = e.deltaY < 0 ? 1.15 : 0.87;
-        zoomAt(e.clientX, e.clientY, dz);
+        const panX = -e.deltaX;
+        const panY = -e.deltaY;
+        apply(scale, tx + panX, ty + panY);
       }, {passive:false});
     
       btnIn  && btnIn.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 1.25));
@@ -660,6 +717,7 @@
         zoomAt(e.clientX, e.clientY, factor);
       });
     
+      // Double-tap center zoom
       vp.addEventListener('touchend', (e)=>{
         const now = Date.now();
         if(now - lastTap < 250 && e.touches.length===0){
@@ -673,14 +731,18 @@
         lastTap = now;
       }, {passive:true});
     
-      // ----- touch: drag & pinch -----
+      // ----- touch: drag, pinch, and swipe-to-next/prev when not zoomed -----
       let pinch = null;
+      let swipeStartX = null, swipeStartY = null;
+      const SWIPE_THRESHOLD = 50; // px
+    
       function distance(t1, t2){ const dx=t2.clientX-t1.clientX, dy=t2.clientY-t1.clientY; return Math.hypot(dx,dy); }
       function midpoint(t1, t2){ return { x:(t1.clientX+t2.clientX)/2, y:(t1.clientY+t2.clientY)/2 }; }
     
       vp.addEventListener('touchstart', (e)=>{
         if(e.touches.length===1){
           const t = e.touches[0];
+          swipeStartX = t.clientX; swipeStartY = t.clientY;
           startDrag(t.clientX, t.clientY);
         } else if(e.touches.length===2){
           const [t1, t2] = e.touches;
@@ -711,17 +773,19 @@
       }, {passive:false});
     
       vp.addEventListener('touchend', (e)=>{
-        if(e.touches.length===0){ endDrag(); pinch=null; }
-        else if(e.touches.length===1){ pinch=null; }
+        if(e.touches.length===0){
+          // swipe-to-nav only when at baseScale (not zoomed)
+          const ct = e.changedTouches[0];
+          if (ct && swipeStartX !== null && Math.abs(ct.clientX - swipeStartX) > SWIPE_THRESHOLD && Math.abs(ct.clientY - swipeStartY) < 80 && Math.abs(scale - baseScale) < 0.01) {
+            const dx = ct.clientX - swipeStartX;
+            if (dx < 0) goNext(); else goPrev();
+          }
+          swipeStartX = swipeStartY = null;
+          endDrag(); pinch=null;
+        } else if(e.touches.length===1){
+          pinch=null;
+        }
       }, {passive:true});
-    
-      // Keyboard shortcuts
-      document.addEventListener('keydown', (e)=>{
-        if(lb.hasAttribute('hidden')) return;
-        if(e.key==='+') btnIn && btnIn.click();
-        if(e.key==='-') btnOut && btnOut.click();
-        if(e.key==='0') btnReset && btnReset.click();
-      });
     
       // Re-fit on resize, preserve relative zoom
       window.addEventListener('resize', ()=>{
@@ -735,7 +799,7 @@
     });
     
     /* ===================== Ghost Placeholder Scrubber ===================== */
-    /* Also run after DOM to ensure the sections exist */
+    /* Run after DOM to ensure the sections exist */
     window.addEventListener('DOMContentLoaded', function () {
       const start = document.getElementById('studio');
       const end = document.getElementById('testimonials');
@@ -782,10 +846,11 @@
       try {
         console.assert(document.querySelector('.hamburger'), 'hamburger button missing');
         console.assert(document.querySelector('nav.nav'), 'nav missing');
+        console.assert(document.getElementById('lightbox'), 'lightbox root missing');
+        console.assert(document.getElementById('zoomViewport'), 'zoom viewport missing');
       } catch(e) { /* no-op */ }
     })();
     </script>
-    
   
   <!-- Lightbox root (appended at end of body for topmost stacking) -->
   <div id="lightbox" class="lightbox" hidden>
