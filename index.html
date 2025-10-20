@@ -173,10 +173,8 @@
       nav.nav .btn{display:block;width:100%;text-align:left;border-radius:0}
     }
     /* Tighter portfolio spacing on small screens */
-    @media (max-width:700px){$1
-      /* Stack portfolio images on mobile */
-      .grid{grid-template-columns:1fr}
-    }
+    @media (max-width:700px){
+      section{padding:68px 0}
       section:first-of-type{padding-top:96px}
       .hero{min-height:100svh;place-items:center center}
       .hero .content{padding:40px 0 20px}
@@ -186,21 +184,15 @@
       [data-parallax]{transform:none !important}
       .hero .bg-layer{background-position:center 90% !important}
       section .bg-layer{background-position:center !important}
+      /* Portfolio: one image per view (swipe) */
+      #work .grid{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 2px}
+      #work .grid::-webkit-scrollbar{height:6px}
+      #work .tile{min-width:100%;scroll-snap-align:center}
       /* Soften hero overlays on mobile */
       .hero::before{background:linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.45));}
       .hero::after{background:radial-gradient(700px 400px at 50% 110%, rgba(0,0,0,.55), transparent 60%);} 
     }
-      .hero::after{background:radial-gradient(700px 400px at 50% 110%, rgba(0,0,0,.55), transparent 60%);} 
-    }
-      .hero .content{padding:40px 0 20px}
-      .goth-title{margin-top:0}
-      .cta{margin-top:8px}
-      /* Keep background images fixed in place on mobile */
-      [data-parallax]{transform:none !important}
-      .hero .bg-layer{background-position:center 90% !important}
-      section .bg-layer{background-position:center !important}
-    }
-    
+
     /* Fade-in reveal for hero locations and section titles */
     .reveal{opacity:0; transform:translateY(8px)}
     .reveal.in{animation:fadeUp .9s ease-out forwards; animation-delay:var(--d, 0s)}
@@ -212,6 +204,24 @@
     #work .grid::-webkit-scrollbar{height:6px}
     #work .tile{min-width:100%;scroll-snap-align:center}
   }
+    /* Lightbox zoom enhancements */
+  .lightbox-inner{position:relative}
+  .lightbox-viewport{position:relative;width:min(92vw,1100px);height:min(82vh,900px);overflow:hidden;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.5)}
+  .lightbox-viewport img{max-width:none;max-height:none;border:none;border-radius:0;box-shadow:none;cursor:grab}
+  .zoom-controls{position:absolute;top:14px;left:14px;display:flex;gap:8px;z-index:2}
+  .zoom-controls button{border:1px solid var(--line);background:rgba(0,0,0,.45);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+  .zoom-controls button:active{transform:scale(.98)}
+    /* Lightbox (modal) base */
+  .lightbox{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.92);backdrop-filter:saturate(120%) blur(2px);z-index:9999;pointer-events:auto}
+  .lightbox[hidden]{display:none}
+  .lightbox-inner{position:relative;max-width:min(92vw,1100px);max-height:88vh;padding:10px}
+  .lightbox-viewport{position:relative;width:min(92vw,1100px);height:min(82vh,900px);overflow:hidden;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.5)}
+  .lightbox-viewport img{max-width:none;max-height:none;border:none;border-radius:0;box-shadow:none;cursor:grab;transform-origin:0 0}
+  .lightbox-caption{margin-top:10px;color:#cfcfcf;text-align:center;font-size:.95rem}
+  .lightbox-close{position:absolute;top:14px;right:14px;border:1px solid var(--line);background:rgba(0,0,0,.4);color:var(--ink);border-radius:8px;padding:8px 10px;cursor:pointer;z-index:3}
+  .zoom-controls{position:absolute;top:14px;left:14px;display:flex;gap:8px;z-index:3}
+  .zoom-controls button{border:1px solid var(--line);background:rgba(0,0,0,.45);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+  .zoom-controls button:active{transform:scale(.98)}
   </style>
 </head>
 <body>
@@ -289,12 +299,12 @@
         <!-- Replace ph divs with real images -->
         <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port1.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Industrial Saint · Backpiece</figcaption></figure>
         <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port2.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Angel of Rot · Sleeve</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port3.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Cathedral · Full</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port4.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Reliquary</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port5.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Anatomical Study</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port6.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Pietà in Ash</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port7.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Procession</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port8.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Icon of Rust · Sleeve</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port3.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Cathedral Spine · Full</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port4.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Reliquary · Chest</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port5.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Anatomical Study · Forearm</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port6.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Pietà in Ash · Thigh</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port7.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Procession · Calf</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port8.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Icon of Rust · Shoulder</figcaption></figure>
       </div>
     </div>
   </section>
@@ -415,16 +425,6 @@
         </a>
       </div>
     </div>
-  
-  <!-- Lightbox root -->
-  <div id="lightbox" class="lightbox" hidden>
-    <button class="lightbox-close" aria-label="Close">Close ✕</button>
-    <div class="lightbox-inner">
-      <img alt="Expanded artwork" id="lightbox-img">
-      <div class="lightbox-caption" id="lightbox-cap"></div>
-    </div>
-  </div>
-
 </footer>
 <script>
   // Minimal parallax: translateY based on scroll and section offset.
@@ -451,50 +451,144 @@
   })();
 </script>
 <script>
-  // Mobile nav toggle
-  (function(){
-    const burger = document.querySelector('.hamburger');
-    const nav = document.querySelector('nav.nav');
-    if(burger && nav){
-      burger.addEventListener('click',()=>{
-        const open = nav.classList.toggle('open');
-        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-    }
-  })();
+  // Mobile nav + Lightbox (ensure DOM is ready before querying elements)
+  document.addEventListener('DOMContentLoaded', function(){
+    // Mobile nav toggle
+    (function(){
+      const burger = document.querySelector('.hamburger');
+      const nav = document.querySelector('nav.nav');
+      if(burger && nav){
+        burger.addEventListener('click',()=>{
+          const open = nav.classList.toggle('open');
+          burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+      }
+    })();
 
-  // Portfolio lightbox
-  (function(){
-    const tiles = Array.from(document.querySelectorAll('.grid .tile'));
-    const lb = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
-    const cap = document.getElementById('lightbox-cap');
-    const closeBtn = document.querySelector('.lightbox-close');
-    function open(src, caption){
-      img.src = src; cap.textContent = caption || '';
-      lb.removeAttribute('hidden');
-      document.body.style.overflow='hidden';
-    }
-    function close(){
-      lb.setAttribute('hidden','');
-      img.removeAttribute('src');
-      document.body.style.overflow='';
-    }
-    tiles.forEach(tile=>{
-      tile.addEventListener('click',()=>{
-        const ph = tile.querySelector('.ph');
-        const bg = ph && ph.style.backgroundImage; // url("port1.jpg")
-        const match = bg && bg.match(/url\(["']?(.*?)["']?\)/);
-        const src = match ? match[1] : null;
-        const caption = (tile.querySelector('.meta')||{}).textContent || '';
-        if(src) open(src, caption);
+    // Portfolio lightbox with zoom (guard against missing DOM nodes)
+    (function(){
+      const tiles = Array.from(document.querySelectorAll('.grid .tile'));
+      const lb = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      const cap = document.getElementById('lightbox-cap');
+      const closeBtn = document.querySelector('.lightbox-close');
+      const vp = document.getElementById('zoomViewport');
+      const btnIn = document.getElementById('zoomIn');
+      const btnOut = document.getElementById('zoomOut');
+      const btnReset = document.getElementById('zoomReset');
+
+      if(!lb || !img || !vp){
+        // Required elements not in DOM; bail gracefully
+        return;
+      }
+
+      let scale = 1, tx = 0, ty = 0; // transform state
+      function setTransform(nx=scale, nxTx=tx, nxTy=ty){
+        scale = Math.min(6, Math.max(1, nx));
+        tx = nxTx; ty = nxTy;
+        img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        img.style.cursor = scale>1 ? 'grab' : 'auto';
+      }
+      function open(src, caption){
+        img.src = src; cap && (cap.textContent = caption || '');
+        lb.removeAttribute('hidden');
+        document.body.style.overflow='hidden';
+        setTransform(1, 0, 0);
+        requestAnimationFrame(()=>{
+          img.style.willChange = 'transform';
+          img.style.transformOrigin = '0 0';
+          img.style.position = 'absolute';
+          img.style.left = '0';
+          img.style.top = '0';
+        });
+      }
+      function close(){
+        lb.setAttribute('hidden','');
+        img.removeAttribute('src');
+        document.body.style.overflow='';
+        setTransform(1,0,0);
+      }
+
+      // open from tiles
+      tiles.forEach(tile=>{
+        tile.addEventListener('click',()=>{
+          const ph = tile.querySelector('.ph');
+          const bg = ph && ph.style.backgroundImage; // url("port1.jpg")
+          const match = bg && bg.match(/url\(["']?(.*?)["']?\)/);
+          const src = match ? match[1] : null;
+          const caption = (tile.querySelector('.meta')||{}).textContent || '';
+          if(src) open(src, caption);
+        });
+        tile.addEventListener('keydown',(e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); tile.click(); }});
       });
-      tile.addEventListener('keydown',(e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); tile.click(); }});
-    });
-    closeBtn && closeBtn.addEventListener('click', close);
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') close(); });
-    lb && lb.addEventListener('click', (e)=>{ if(e.target===lb) close(); });
-  })();
+
+      // Close interactions
+      closeBtn && closeBtn.addEventListener('click', close);
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') close(); });
+      lb.addEventListener('click', (e)=>{ if(e.target===lb) close(); });
+
+      // Zoom controls
+      function zoomAt(cx, cy, dz){
+        const rect = vp.getBoundingClientRect();
+        const px = cx - rect.left - tx; // point in image coords
+        const py = cy - rect.top - ty;
+        const newScale = Math.min(6, Math.max(1, scale * dz));
+        const k = newScale / scale;
+        const ntx = cx - rect.left - px * k;
+        const nty = cy - rect.top - py * k;
+        setTransform(newScale, ntx, nty);
+      }
+      btnIn && btnIn.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 1.25));
+      btnOut && btnOut.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 0.8));
+      btnReset && btnReset.addEventListener('click', ()=> setTransform(1,0,0));
+
+      // Wheel zoom (guard)
+      vp.addEventListener('wheel', (e)=>{
+        e.preventDefault();
+        const dz = e.deltaY < 0 ? 1.15 : 0.87;
+        zoomAt(e.clientX, e.clientY, dz);
+      }, {passive:false});
+
+      // Drag to pan when zoomed
+      let dragging=false, sx=0, sy=0, stx=0, sty=0;
+      function startDrag(x,y){ dragging=true; sx=x; sy=y; stx=tx; sty=ty; img.style.cursor='grabbing'; }
+      function moveDrag(x,y){ if(!dragging) return; setTransform(scale, stx + (x-sx), sty + (y-sy)); }
+      function endDrag(){ dragging=false; img.style.cursor = scale>1 ? 'grab' : 'auto'; }
+
+      img.addEventListener('mousedown', (e)=>{ if(scale>1){ startDrag(e.clientX, e.clientY); e.preventDefault(); }});
+      window.addEventListener('mousemove', (e)=> moveDrag(e.clientX, e.clientY));
+      window.addEventListener('mouseup', endDrag);
+
+      // Touch gestures
+      vp.addEventListener('touchstart', (e)=>{
+        if(e.touches.length===1 && scale>1){ startDrag(e.touches[0].clientX, e.touches[0].clientY); }
+        e.preventDefault();
+      }, {passive:false});
+      vp.addEventListener('touchmove', (e)=>{
+        if(e.touches.length===1) moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+        e.preventDefault();
+      }, {passive:false});
+      vp.addEventListener('touchend', endDrag, {passive:true});
+
+      // Keyboard zoom
+      document.addEventListener('keydown', (e)=>{
+        if(lb.hasAttribute('hidden')) return;
+        if(e.key==='+') btnIn && btnIn.click();
+        if(e.key==='-') btnOut && btnOut.click();
+        if(e.key==='0') btnReset && btnReset.click();
+      });
+    })();
+
+    // Minimal self-tests (console only)
+    (function(){
+      try {
+        console.assert(document.querySelector('.hamburger'), 'hamburger button missing');
+        console.assert(document.querySelector('nav.nav'), 'nav missing');
+        console.assert(document.getElementById('lightbox'), 'lightbox root missing');
+        console.assert(document.getElementById('zoomViewport'), 'zoom viewport missing');
+      } catch(e) { /* no-op */ }
+    })();
+  });
 </script>
 <script>
   // Reveal on scroll (kicker + all h2)
@@ -511,5 +605,20 @@
     });
   })();
 </script>
+  <!-- Lightbox root (appended at end of body for topmost stacking) -->
+  <div id="lightbox" class="lightbox" hidden>
+    <div class="lightbox-inner">
+      <div class="zoom-controls" aria-hidden="false">
+        <button type="button" id="zoomIn" aria-label="Zoom in">＋</button>
+        <button type="button" id="zoomOut" aria-label="Zoom out">－</button>
+        <button type="button" id="zoomReset" aria-label="Reset zoom">Reset</button>
+      </div>
+      <button class="lightbox-close" aria-label="Close">Close ✕</button>
+      <div class="lightbox-viewport" id="zoomViewport">
+        <img alt="Expanded artwork" id="lightbox-img" class="zoom-img">
+      </div>
+      <div class="lightbox-caption" id="lightbox-cap"></div>
+    </div>
+  </div>
 </body>
 </html>
