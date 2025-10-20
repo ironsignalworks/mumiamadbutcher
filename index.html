@@ -859,6 +859,55 @@
       });
     })();
   </script>
+  <script>
+    // Scrub invisible placeholders between #studio and #testimonials
+    (function () {
+      const start = document.getElementById('studio');
+      const end = document.getElementById('testimonials');
+      if (!start || !end) return;
+    
+      // Collect siblings strictly between the two sections
+      const nodes = [];
+      let n = start.nextElementSibling;
+      while (n && n !== end) { nodes.push(n); n = n.nextElementSibling; }
+    
+      // Helper: remove container if it becomes empty/pointless
+      function prune(el) {
+        // Prefer removing a meaningful wrapper
+        const carrier = el.closest('figure, .visual, .split, .wrap, section, div') || el;
+        carrier.remove();
+      }
+    
+      // 1) Remove broken/empty <img> tags in that slice
+      nodes.forEach(root => {
+        root.querySelectorAll('img').forEach(img => {
+          const removeIfGhost = () => {
+            // no src, blank src, or failed decode => treat as ghost
+            if (!img.getAttribute('src') || img.getAttribute('src').trim() === '' || img.naturalWidth === 0) {
+              prune(img);
+            }
+          };
+          if (img.complete) {
+            // already loaded/errored
+            removeIfGhost();
+          } else {
+            img.addEventListener('error', removeIfGhost, { once: true });
+            img.addEventListener('load', removeIfGhost, { once: true });
+          }
+        });
+      });
+    
+      // 2) Remove .ph placeholders with no real background-image
+      nodes.forEach(root => {
+        root.querySelectorAll('.ph').forEach(ph => {
+          const bg = getComputedStyle(ph).backgroundImage;
+          if (!bg || bg === 'none' || /url\(\s*["']?\s*\)/i.test(bg)) {
+            prune(ph);
+          }
+        });
+      });
+    })();
+    </script> 
   
   <!-- Lightbox root (appended at end of body for topmost stacking) -->
   <div id="lightbox" class="lightbox" hidden>
