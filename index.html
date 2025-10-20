@@ -133,6 +133,10 @@
     .goth-title .orn{opacity:.7;font-size:.95em;letter-spacing:.2em}
     .goth-title .orn{opacity:.6;font-size:.9em;letter-spacing:.2em}
     .section-kicker{letter-spacing:.28em;color:var(--accent-2);font-size:.74rem;text-transform:uppercase;margin-bottom:8px}
+    /* Text-only surge for hero title */
+    .surge-fill{display:inline-block;background:linear-gradient(0deg, #000 0%, #0b0b0b 25%, #ffffff 85%);background-size:100% 260%;background-position:0 120%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:textSurge 1.8s cubic-bezier(.22,.61,.36,1) forwards}
+    @keyframes textSurge{to{background-position:0 0%}}
+
     /* Alternating side rails */
     .section-body{max-width:820px}
     .align-left{margin-right:auto}
@@ -184,6 +188,8 @@
       .hero::before{background:linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.45));}
       .hero::after{background:radial-gradient(700px 400px at 50% 110%, rgba(0,0,0,.55), transparent 60%);} 
     }
+      .hero::after{background:radial-gradient(700px 400px at 50% 110%, rgba(0,0,0,.55), transparent 60%);} 
+    }
       .hero .content{padding:40px 0 20px}
       .goth-title{margin-top:0}
       .cta{margin-top:8px}
@@ -197,6 +203,7 @@
     .reveal{opacity:0; transform:translateY(8px)}
     .reveal.in{animation:fadeUp .9s ease-out forwards; animation-delay:var(--d, 0s)}
     @keyframes fadeUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
+    
   </style>
 </head>
 <body>
@@ -237,7 +244,7 @@
     <div class="bg-layer texture-overlay" data-parallax data-speed="0.25" style="background-image:url('tt1.jpg');background-position:center bottom"></div>
     <div class="wrap content">
       <div class="kicker reveal" style="--d:.12s">STOCKHOLM · NEW YORK · LOS ANGELES</div>
-      <h1 class="goth">Mumia Mad Butcher</h1>
+      <h1 class="goth"><span class="surge-fill">Mumia Mad Butcher</span></h1>
       <p class="lead" style="margin-top:4px">Apocalyptic precision. Ritual ink.</p>
       <div class="cta">
         <a href="#booking" class="btn btn--crimson">Book Session</a>
