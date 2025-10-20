@@ -173,8 +173,10 @@
       nav.nav .btn{display:block;width:100%;text-align:left;border-radius:0}
     }
     /* Tighter portfolio spacing on small screens */
-    @media (max-width:700px){
-      section{padding:68px 0}
+    @media (max-width:700px){$1
+      /* Stack portfolio images on mobile */
+      .grid{grid-template-columns:1fr}
+    }
       section:first-of-type{padding-top:96px}
       .hero{min-height:100svh;place-items:center center}
       .hero .content{padding:40px 0 20px}
@@ -204,6 +206,12 @@
     .reveal.in{animation:fadeUp .9s ease-out forwards; animation-delay:var(--d, 0s)}
     @keyframes fadeUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
     
+    /* Mobile: show one portfolio image at a time (swipe) */
+  @media (max-width:700px){
+    #work .grid{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 2px}
+    #work .grid::-webkit-scrollbar{height:6px}
+    #work .tile{min-width:100%;scroll-snap-align:center}
+  }
   </style>
 </head>
 <body>
@@ -281,12 +289,12 @@
         <!-- Replace ph divs with real images -->
         <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port1.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Industrial Saint · Backpiece</figcaption></figure>
         <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port2.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Angel of Rot · Sleeve</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port3.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Cathedral Spine · Full</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port4.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Reliquary · Chest</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port5.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Anatomical Study · Forearm</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port6.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Pietà in Ash · Thigh</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port7.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Procession · Calf</figcaption></figure>
-        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port8.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Icon of Rust · Shoulder</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port3.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Cathedral · Full</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port4.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Reliquary</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port5.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Anatomical Study</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port6.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Pietà in Ash</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port7.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Procession</figcaption></figure>
+        <figure class="tile" tabindex="0" role="button" aria-label="Open image"><div class="ph" style="background-image:url('port8.jpg');background-size:cover;background-position:center;"></div><figcaption class="meta">Icon of Rust · Sleeve</figcaption></figure>
       </div>
     </div>
   </section>
