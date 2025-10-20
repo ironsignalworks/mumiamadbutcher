@@ -674,23 +674,25 @@
         if(e.key === 'ArrowRight'){ e.preventDefault(); goNext(); }
       });
     
-      // ----- wheel / trackpad: pan; Ctrl/Cmd + wheel: zoom -----
-      vp.addEventListener('wheel', (e)=>{
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-          const dz = e.deltaY < 0 ? 1.15 : 0.87;
-          zoomAt(e.clientX, e.clientY, dz);
-          return;
-        }
+        // ----- wheel: zoom by default; hold Alt/Option to pan -----
+        vp.addEventListener('wheel', (e) => {
         e.preventDefault();
-        const panX = -e.deltaX;
-        const panY = -e.deltaY;
-        apply(scale, tx + panX, ty + panY);
-      }, {passive:false});
-    
-      btnIn  && btnIn.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 1.25));
-      btnOut && btnOut.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 0.8));
-      btnReset && btnReset.addEventListener('click', ()=> { fitToViewport(); });
+
+        // Hold Alt/Option to pan with the wheel instead of zooming
+        if (e.altKey) {
+            // pan direction feels natural: scroll down moves image down (so translate up is negative deltaY)
+            apply(scale, tx - e.deltaX, ty - e.deltaY);
+            return;
+        }
+
+        // Smooth zoom factor (works well for both mouse wheel and trackpads)
+        // Negative deltaY => zoom in, positive => zoom out
+        const factor = Math.exp(-e.deltaY * 0.0015);
+
+        // Zoom around the pointer location
+        zoomAt(e.clientX, e.clientY, factor);
+        }, { passive: false });
+
     
       // ----- drag at any scale -----
       function startDrag(x,y){
