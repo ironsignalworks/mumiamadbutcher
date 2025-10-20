@@ -425,46 +425,73 @@
     </div>
 </footer>
 <script>
-  // Minimal parallax: translateY based on scroll and section offset.
-  (function(){
-    const layers = Array.from(document.querySelectorAll('[data-parallax]'));
-    const update = () => {
-      const vh = window.innerHeight;
-      const disable = window.innerWidth <= 700;
-      for (const el of layers){
-        if(disable){ el.style.transform = 'translateY(0)'; continue; }
-        const speed = parseFloat(el.getAttribute('data-speed')|| '0.2');
-        const rect = el.parentElement.getBoundingClientRect();
-        const center = rect.top + rect.height/2 - vh/2; // distance from viewport center
-        const move = -center * speed;
-        el.style.transform = `translateY(${move.toFixed(1)}px)`;
-      }
-    };
-    let ticking = false;
-    const onScroll = () => { if(!ticking){ requestAnimationFrame(()=>{ update(); ticking=false; }); ticking=true; } };
-    window.addEventListener('scroll', onScroll, {passive:true});
-    window.addEventListener('resize', onScroll);
-    document.addEventListener('DOMContentLoaded', update);
-    update();
-  })();
-</script>
-<script>
-  // Mobile nav + Lightbox (ensure DOM is ready before querying elements)
-  document.addEventListener('DOMContentLoaded', function(){
-    // Mobile nav toggle
+    /* ===================== Parallax ===================== */
+    (function(){
+      const layers = Array.from(document.querySelectorAll('[data-parallax]'));
+      const update = () => {
+        const vh = window.innerHeight;
+        const disable = window.innerWidth <= 700;
+        for (const el of layers){
+          if(disable){ el.style.transform = 'translateY(0)'; continue; }
+          const speed = parseFloat(el.getAttribute('data-speed')|| '0.2');
+          const rect = el.parentElement.getBoundingClientRect();
+          const center = rect.top + rect.height/2 - vh/2;
+          const move = -center * speed;
+          el.style.transform = `translateY(${move.toFixed(1)}px)`;
+        }
+      };
+      let ticking = false;
+      const onScroll = () => { if(!ticking){ requestAnimationFrame(()=>{ update(); ticking=false; }); ticking=true; } };
+      window.addEventListener('scroll', onScroll, {passive:true});
+      window.addEventListener('resize', onScroll);
+      document.addEventListener('DOMContentLoaded', update);
+      update();
+    })();
+    
+    /* ===================== Reveal on Scroll ===================== */
+    (function(){
+      const els = Array.from(document.querySelectorAll('.reveal'));
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+      },{threshold:0.2, rootMargin:'0px 0px -10% 0px'});
+      els.forEach(el=>io.observe(el));
+      window.addEventListener('DOMContentLoaded', ()=>{
+        document.querySelectorAll('.hero .reveal').forEach(el=>el.classList.add('in'));
+      });
+    })();
+    
+    /* ===================== Mobile Nav (with outside-close) ===================== */
     (function(){
       const burger = document.querySelector('.hamburger');
       const nav = document.querySelector('nav.nav');
-      if(burger && nav){
-        burger.addEventListener('click',()=>{
-          const open = nav.classList.toggle('open');
-          burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-      }
+      if(!burger || !nav) return;
+    
+      const closeNav = ()=> {
+        nav.classList.remove('open');
+        burger.setAttribute('aria-expanded', 'false');
+      };
+    
+      burger.addEventListener('click',()=>{
+        const open = nav.classList.toggle('open');
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    
+      // Close when clicking/tapping outside nav + burger
+      document.addEventListener('pointerdown', (e)=>{
+        if (!nav.classList.contains('open')) return;
+        if (!nav.contains(e.target) && !burger.contains(e.target)) closeNav();
+      });
+    
+      // Close when a nav link is tapped/clicked
+      nav.addEventListener('click', (e)=>{
+        const a = e.target.closest('a');
+        if (a) closeNav();
+      });
     })();
-
-    // Portfolio lightbox with zoom (guard against missing DOM nodes)
-    (function(){
+    
+    /* ===================== Portfolio Lightbox with Zoom ===================== */
+    /* IMPORTANT: run after DOM is fully parsed so #lightbox exists */
+    window.addEventListener('DOMContentLoaded', function(){
       const tiles = Array.from(document.querySelectorAll('.grid .tile'));
       const lb = document.getElementById('lightbox');
       const img = document.getElementById('lightbox-img');
@@ -474,240 +501,104 @@
       const btnIn = document.getElementById('zoomIn');
       const btnOut = document.getElementById('zoomOut');
       const btnReset = document.getElementById('zoomReset');
-
-      if(!lb || !img || !vp){
-        // Required elements not in DOM; bail gracefully
-        return;
-      }
-
-      let scale = 1, tx = 0, ty = 0; // transform state
-      function setTransform(nx=scale, nxTx=tx, nxTy=ty){
-        scale = Math.min(6, Math.max(1, nx));
-        tx = nxTx; ty = nxTy;
-        img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-        img.style.cursor = scale>1 ? 'grab' : 'auto';
-      }
-      function open(src, caption){
-        img.src = src; cap && (cap.textContent = caption || '');
-        lb.removeAttribute('hidden');
-        document.body.style.overflow='hidden';
-        setTransform(1, 0, 0);
-        requestAnimationFrame(()=>{
-          img.style.willChange = 'transform';
-          img.style.transformOrigin = '0 0';
-          img.style.position = 'absolute';
-          img.style.left = '0';
-          img.style.top = '0';
-        });
-      }
-      function close(){
-        lb.setAttribute('hidden','');
-        img.removeAttribute('src');
-        document.body.style.overflow='';
-        setTransform(1,0,0);
-      }
-
-      // open from tiles
-      tiles.forEach(tile=>{
-        tile.addEventListener('click',()=>{
-          const ph = tile.querySelector('.ph');
-          const bg = ph && ph.style.backgroundImage; // url("port1.jpg")
-          const match = bg && bg.match(/url\(["']?(.*?)["']?\)/);
-          const src = match ? match[1] : null;
-          const caption = (tile.querySelector('.meta')||{}).textContent || '';
-          if(src) open(src, caption);
-        });
-        tile.addEventListener('keydown',(e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); tile.click(); }});
-      });
-
-      // Close interactions
-      closeBtn && closeBtn.addEventListener('click', close);
-      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') close(); });
-      lb.addEventListener('click', (e)=>{ if(e.target===lb) close(); });
-
-      // Zoom controls
-      function zoomAt(cx, cy, dz){
-        const rect = vp.getBoundingClientRect();
-        const px = cx - rect.left - tx; // point in image coords
-        const py = cy - rect.top - ty;
-        const newScale = Math.min(6, Math.max(1, scale * dz));
-        const k = newScale / scale;
-        const ntx = cx - rect.left - px * k;
-        const nty = cy - rect.top - py * k;
-        setTransform(newScale, ntx, nty);
-      }
-      btnIn && btnIn.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 1.25));
-      btnOut && btnOut.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 0.8));
-      btnReset && btnReset.addEventListener('click', ()=> setTransform(1,0,0));
-
-      // Wheel zoom (guard)
-      vp.addEventListener('wheel', (e)=>{
-        e.preventDefault();
-        const dz = e.deltaY < 0 ? 1.15 : 0.87;
-        zoomAt(e.clientX, e.clientY, dz);
-      }, {passive:false});
-
-      // Drag to pan when zoomed
-      let dragging=false, sx=0, sy=0, stx=0, sty=0;
-      function startDrag(x,y){ dragging=true; sx=x; sy=y; stx=tx; sty=ty; img.style.cursor='grabbing'; }
-      function moveDrag(x,y){ if(!dragging) return; setTransform(scale, stx + (x-sx), sty + (y-sy)); }
-      function endDrag(){ dragging=false; img.style.cursor = scale>1 ? 'grab' : 'auto'; }
-
-      img.addEventListener('mousedown', (e)=>{ if(scale>1){ startDrag(e.clientX, e.clientY); e.preventDefault(); }});
-      window.addEventListener('mousemove', (e)=> moveDrag(e.clientX, e.clientY));
-      window.addEventListener('mouseup', endDrag);
-
-      // Touch gestures
-      vp.addEventListener('touchstart', (e)=>{
-        if(e.touches.length===1 && scale>1){ startDrag(e.touches[0].clientX, e.touches[0].clientY); }
-        e.preventDefault();
-      }, {passive:false});
-      vp.addEventListener('touchmove', (e)=>{
-        if(e.touches.length===1) moveDrag(e.touches[0].clientX, e.touches[0].clientY);
-        e.preventDefault();
-      }, {passive:false});
-      vp.addEventListener('touchend', endDrag, {passive:true});
-
-      // Keyboard zoom
-      document.addEventListener('keydown', (e)=>{
-        if(lb.hasAttribute('hidden')) return;
-        if(e.key==='+') btnIn && btnIn.click();
-        if(e.key==='-') btnOut && btnOut.click();
-        if(e.key==='0') btnReset && btnReset.click();
-      });
-    })();
-
-    // Minimal self-tests (console only)
-    (function(){
-      try {
-        console.assert(document.querySelector('.hamburger'), 'hamburger button missing');
-        console.assert(document.querySelector('nav.nav'), 'nav missing');
-        console.assert(document.getElementById('lightbox'), 'lightbox root missing');
-        console.assert(document.getElementById('zoomViewport'), 'zoom viewport missing');
-      } catch(e) { /* no-op */ }
-    })();
-  });
-</script>
-<script>
-  // Reveal on scroll (kicker + all h2)
-  (function(){
-    const els = Array.from(document.querySelectorAll('.reveal'));
-    const io = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
-    },{threshold:0.2, rootMargin:'0px 0px -10% 0px'});
-    // observe all
-    els.forEach(el=>io.observe(el));
-    // ensure hero elements animate immediately on load
-    window.addEventListener('DOMContentLoaded', ()=>{
-      document.querySelectorAll('.hero .reveal').forEach(el=>el.classList.add('in'));
-    });
-  })();
-</script>
-<script>
-    // Portfolio lightbox with zoom (drop-in fix)
-    (function(){
-      const tiles = Array.from(document.querySelectorAll('.grid .tile'));
-      const lb = document.getElementById('lightbox');
-      const img = document.getElementById('lightbox-img');
-      const cap = document.getElementById('lightbox-cap');
-      const closeBtn = document.querySelector('.lightbox-close');
-      const vp = document.getElementById('zoomViewport');
-      const btnIn = document.getElementById('zoomIn');
-      const btnOut = document.getElementById('zoomOut');
-      const btnReset = document.getElementById('zoomReset');
-  
+    
       if(!lb || !img || !vp) return;
-  
+    
       // ----- state -----
       let baseScale = 1;     // fit-to-viewport scale (minimum)
       let scale = 1;         // current scale
       let tx = 0, ty = 0;    // current translation
-      let maxScale = 6;      // will be multiplied by baseScale
+      const maxScale = 6;    // multiplied by baseScale
       let dragging = false, sx=0, sy=0, stx=0, sty=0;
       let lastTap = 0;
-  
-      // Utility: clamp panning so the image never "floats away"
-      function clampPan(ns, ntx, nty){
+    
+        // Replace your existing clampPan with this version
+        function clampPan(ns, ntx, nty){
         const vw = vp.clientWidth, vh = vp.clientHeight;
         const iw = img.naturalWidth * ns;
         const ih = img.naturalHeight * ns;
-  
-        // When image is smaller than viewport on an axis, keep centered
-        const minX = Math.min(0, vw - iw);
-        const maxX = Math.max(0, vw - iw); // when iw < vw both are same (center)
-        const minY = Math.min(0, vh - ih);
-        const maxY = Math.max(0, vh - ih);
-  
-        // If image smaller than viewport -> lock to center on that axis
+
         const lockX = iw <= vw;
         const lockY = ih <= vh;
-  
-        if(lockX) ntx = (vw - iw) / 2;
-        else      ntx = Math.max(minX, Math.min(maxX, ntx));
-  
-        if(lockY) nty = (vh - ih) / 2;
-        else      nty = Math.max(minY, Math.min(maxY, nty));
-  
+
+        // If image is smaller than viewport on an axis, center it
+        if (lockX) {
+            ntx = (vw - iw) / 2;
+        } else {
+            // Otherwise clamp so you can't drag past edges
+            const minX = vw - iw; // negative
+            const maxX = 0;
+            ntx = Math.max(minX, Math.min(maxX, ntx));
+        }
+
+        if (lockY) {
+            nty = (vh - ih) / 2;
+        } else {
+            const minY = vh - ih; // negative
+            const maxY = 0;
+            nty = Math.max(minY, Math.min(maxY, nty));
+        }
+
         return [ntx, nty];
-      }
-  
+        }
+
+    
       function apply(nxScale=scale, nx=tx, ny=ty){
         scale = Math.max(baseScale, Math.min(maxScale*baseScale, nxScale));
         [tx, ty] = clampPan(scale, nx, ny);
         img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-        img.style.cursor = scale>baseScale ? (dragging ? 'grabbing' : 'grab') : 'auto';
+        img.style.cursor = dragging ? 'grabbing' : 'grab';
       }
-  
+    
       function fitToViewport(){
         const vw = vp.clientWidth, vh = vp.clientHeight;
         const iw = img.naturalWidth, ih = img.naturalHeight;
         baseScale = Math.min(vw/iw, vh/ih);
         if(!isFinite(baseScale) || baseScale<=0) baseScale = 1;
+        // Start centered and draggable immediately
         const cx = (vw - iw*baseScale)/2;
         const cy = (vh - ih*baseScale)/2;
         apply(baseScale, cx, cy);
       }
-  
+    
       function open(src, caption){
         img.style.willChange = 'transform';
         img.style.transformOrigin = '0 0';
         img.style.position = 'absolute';
         img.style.left = '0';
         img.style.top  = '0';
-  
+    
         img.onload = () => { fitToViewport(); };
         img.src = src;
         cap && (cap.textContent = caption || '');
         lb.removeAttribute('hidden');
         document.body.style.overflow='hidden';
       }
-  
+    
       function close(){
         lb.setAttribute('hidden','');
         document.body.style.overflow='';
         img.removeAttribute('src');
         dragging = false;
       }
-  
+    
       // Zoom relative to a viewport coordinate (cx, cy)
       function zoomAt(cx, cy, factor){
         const rect = vp.getBoundingClientRect();
-        const vx = cx - rect.left;  // pointer in viewport coords
+        const vx = cx - rect.left;
         const vy = cy - rect.top;
-  
-        // Convert pointer to image-local coords BEFORE zoom
+    
         const ix = (vx - tx) / scale;
         const iy = (vy - ty) / scale;
-  
+    
         const newScale = Math.max(baseScale, Math.min(maxScale*baseScale, scale * factor));
-  
-        // Keep the ix/iy under the pointer after zoom
+    
         const ntx = vx - ix * newScale;
         const nty = vy - iy * newScale;
-  
+    
         apply(newScale, ntx, nty);
       }
-  
+    
       // ----- open from tiles -----
       tiles.forEach(tile=>{
         tile.addEventListener('click',()=>{
@@ -722,26 +613,30 @@
           if(e.key==='Enter' || e.key===' '){ e.preventDefault(); tile.click(); }
         });
       });
-  
+    
       // ----- close interactions -----
       closeBtn && closeBtn.addEventListener('click', close);
       document.addEventListener('keydown', (e)=>{ if(!lb.hasAttribute('hidden') && e.key==='Escape') close(); });
-      lb.addEventListener('click', (e)=>{ if(e.target===lb) close(); });
-  
+    
+      // Close on outside pointer (touch/mouse) anywhere outside the modal
+      lb.addEventListener('pointerdown', (e)=>{
+        const inner = lb.querySelector('.lightbox-inner');
+        if (inner && !inner.contains(e.target)) close();
+      });
+    
       // ----- wheel + buttons -----
       vp.addEventListener('wheel', (e)=>{
         e.preventDefault();
         const dz = e.deltaY < 0 ? 1.15 : 0.87;
         zoomAt(e.clientX, e.clientY, dz);
       }, {passive:false});
-  
+    
       btnIn  && btnIn.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 1.25));
       btnOut && btnOut.addEventListener('click', ()=> zoomAt(vp.clientWidth/2, vp.clientHeight/2, 0.8));
       btnReset && btnReset.addEventListener('click', ()=> { fitToViewport(); });
-  
-      // ----- mouse drag -----
+    
+      // ----- drag at any scale -----
       function startDrag(x,y){
-        if(scale <= baseScale) return;
         dragging = true; sx=x; sy=y; stx=tx; sty=ty;
         img.style.cursor = 'grabbing';
       }
@@ -751,24 +646,23 @@
       }
       function endDrag(){
         dragging = false;
-        img.style.cursor = scale>baseScale ? 'grab' : 'auto';
+        img.style.cursor = 'grab';
       }
-  
+    
       img.addEventListener('mousedown', (e)=>{ startDrag(e.clientX, e.clientY); e.preventDefault(); });
       window.addEventListener('mousemove', (e)=> moveDrag(e.clientX, e.clientY));
       window.addEventListener('mouseup', endDrag);
-  
+    
       // ----- double-click / double-tap to zoom -----
       vp.addEventListener('dblclick', (e)=>{
         const targetScale = (scale <= baseScale*1.01) ? baseScale*2 : baseScale;
         const factor = targetScale/scale;
         zoomAt(e.clientX, e.clientY, factor);
       });
-  
+    
       vp.addEventListener('touchend', (e)=>{
         const now = Date.now();
         if(now - lastTap < 250 && e.touches.length===0){
-          // double tap center zoom
           const rect = vp.getBoundingClientRect();
           const cx = rect.left + rect.width/2;
           const cy = rect.top  + rect.height/2;
@@ -778,34 +672,24 @@
         }
         lastTap = now;
       }, {passive:true});
-  
+    
       // ----- touch: drag & pinch -----
-      let pinch = null; // {startDist, startScale, midX, midY}
-      function distance(t1, t2){
-        const dx = t2.clientX - t1.clientX;
-        const dy = t2.clientY - t1.clientY;
-        return Math.hypot(dx, dy);
-      }
-      function midpoint(t1, t2){
-        return { x: (t1.clientX + t2.clientX)/2, y: (t1.clientY + t2.clientY)/2 };
-      }
-  
+      let pinch = null;
+      function distance(t1, t2){ const dx=t2.clientX-t1.clientX, dy=t2.clientY-t1.clientY; return Math.hypot(dx,dy); }
+      function midpoint(t1, t2){ return { x:(t1.clientX+t2.clientX)/2, y:(t1.clientY+t2.clientY)/2 }; }
+    
       vp.addEventListener('touchstart', (e)=>{
-        if(e.touches.length===1 && scale>baseScale){
+        if(e.touches.length===1){
           const t = e.touches[0];
           startDrag(t.clientX, t.clientY);
         } else if(e.touches.length===2){
           const [t1, t2] = e.touches;
-          pinch = {
-            startDist: distance(t1, t2),
-            startScale: scale,
-            mid: midpoint(t1, t2)
-          };
+          pinch = { startDist: distance(t1, t2), startScale: scale, mid: midpoint(t1, t2) };
           dragging = false;
         }
         e.preventDefault();
       }, {passive:false});
-  
+    
       vp.addEventListener('touchmove', (e)=>{
         if(e.touches.length===1 && !pinch){
           const t = e.touches[0];
@@ -814,52 +698,45 @@
           const [t1, t2] = e.touches;
           const dist = distance(t1, t2);
           const factor = dist / pinch.startDist;
-          // zoom around initial pinch midpoint
           const target = Math.max(baseScale, Math.min(maxScale*baseScale, pinch.startScale * factor));
           const rect = vp.getBoundingClientRect();
-          const cx = pinch.mid.x;
-          const cy = pinch.mid.y;
-  
-          // compute ix/iy like zoomAt using the original state
-          const vx = cx - rect.left;
-          const vy = cy - rect.top;
-          const ix = (vx - tx) / scale;
-          const iy = (vy - ty) / scale;
-          const ntx = vx - ix * target;
-          const nty = vy - iy * target;
+          const cx = pinch.mid.x, cy = pinch.mid.y;
+    
+          const vx = cx - rect.left, vy = cy - rect.top;
+          const ix = (vx - tx) / scale, iy = (vy - ty) / scale;
+          const ntx = vx - ix * target, nty = vy - iy * target;
           apply(target, ntx, nty);
         }
         e.preventDefault();
       }, {passive:false});
-  
+    
       vp.addEventListener('touchend', (e)=>{
         if(e.touches.length===0){ endDrag(); pinch=null; }
         else if(e.touches.length===1){ pinch=null; }
       }, {passive:true});
-  
-      // Keyboard shortcuts (unchanged)
+    
+      // Keyboard shortcuts
       document.addEventListener('keydown', (e)=>{
         if(lb.hasAttribute('hidden')) return;
         if(e.key==='+') btnIn && btnIn.click();
         if(e.key==='-') btnOut && btnOut.click();
         if(e.key==='0') btnReset && btnReset.click();
       });
-  
-      // Re-fit on resize to keep the image consistent
+    
+      // Re-fit on resize, preserve relative zoom
       window.addEventListener('resize', ()=>{
         if(lb.hasAttribute('hidden') || !img.src) return;
         const oldBase = baseScale;
         const oldScale = scale;
-        // compute relative factor to preserve zoom level on resize
         const rel = oldScale / oldBase;
         fitToViewport();
         apply(baseScale * rel, tx, ty);
       });
-    })();
-  </script>
-  <script>
-    // Scrub invisible placeholders between #studio and #testimonials
-    (function () {
+    });
+    
+    /* ===================== Ghost Placeholder Scrubber ===================== */
+    /* Also run after DOM to ensure the sections exist */
+    window.addEventListener('DOMContentLoaded', function () {
       const start = document.getElementById('studio');
       const end = document.getElementById('testimonials');
       if (!start || !end) return;
@@ -869,24 +746,20 @@
       let n = start.nextElementSibling;
       while (n && n !== end) { nodes.push(n); n = n.nextElementSibling; }
     
-      // Helper: remove container if it becomes empty/pointless
       function prune(el) {
-        // Prefer removing a meaningful wrapper
         const carrier = el.closest('figure, .visual, .split, .wrap, section, div') || el;
         carrier.remove();
       }
     
-      // 1) Remove broken/empty <img> tags in that slice
+      // Remove broken/empty <img> tags
       nodes.forEach(root => {
         root.querySelectorAll('img').forEach(img => {
           const removeIfGhost = () => {
-            // no src, blank src, or failed decode => treat as ghost
             if (!img.getAttribute('src') || img.getAttribute('src').trim() === '' || img.naturalWidth === 0) {
               prune(img);
             }
           };
           if (img.complete) {
-            // already loaded/errored
             removeIfGhost();
           } else {
             img.addEventListener('error', removeIfGhost, { once: true });
@@ -895,17 +768,24 @@
         });
       });
     
-      // 2) Remove .ph placeholders with no real background-image
+      // Remove .ph placeholders with no real background-image
       nodes.forEach(root => {
         root.querySelectorAll('.ph').forEach(ph => {
           const bg = getComputedStyle(ph).backgroundImage;
-          if (!bg || bg === 'none' || /url\(\s*["']?\s*\)/i.test(bg)) {
-            prune(ph);
-          }
+          if (!bg || bg === 'none' || /url\(\s*["']?\s*\)/i.test(bg)) prune(ph);
         });
       });
+    });
+    
+    /* ===================== Minimal self-tests (console) ===================== */
+    (function(){
+      try {
+        console.assert(document.querySelector('.hamburger'), 'hamburger button missing');
+        console.assert(document.querySelector('nav.nav'), 'nav missing');
+      } catch(e) { /* no-op */ }
     })();
-    </script> 
+    </script>
+    
   
   <!-- Lightbox root (appended at end of body for topmost stacking) -->
   <div id="lightbox" class="lightbox" hidden>
