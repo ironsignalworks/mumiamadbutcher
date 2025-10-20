@@ -193,6 +193,10 @@
       section .bg-layer{background-position:center !important}
     }
     
+    /* Fade-in reveal for hero locations and section titles */
+    .reveal{opacity:0; transform:translateY(8px)}
+    .reveal.in{animation:fadeUp .9s ease-out forwards; animation-delay:var(--d, 0s)}
+    @keyframes fadeUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
   </style>
 </head>
 <body>
@@ -232,7 +236,7 @@
   <section class="hero bg-vignette" id="top">
     <div class="bg-layer texture-overlay" data-parallax data-speed="0.25" style="background-image:url('tt1.jpg');background-position:center bottom"></div>
     <div class="wrap content">
-      <div class="kicker">STOCKHOLM · NEW YORK · LOS ANGELES</div>
+      <div class="kicker reveal" style="--d:.12s">STOCKHOLM · NEW YORK · LOS ANGELES</div>
       <h1 class="goth">Mumia Mad Butcher</h1>
       <p class="lead" style="margin-top:4px">Apocalyptic precision. Ritual ink.</p>
       <div class="cta">
@@ -248,7 +252,7 @@
     <div class="wrap split">
       <div class="copy">
         <div class="section-kicker">ARTIST</div>
-        <h2 class="goth-title"><span class="orn">†</span><span>About</span><span class="orn">†</span></h2>
+        <h2 class="goth-title reveal"><span class="orn">†</span><span>About</span><span class="orn">†</span></h2>
         <p><em>Carving realism from ruin.</em> Born in Portugal, forged in Denmark at <strong>Zoi Tattoo (Copenhagen)</strong>, now living between <strong>Stockholm, New York, Los Angeles,</strong>. Every piece—custom, disciplined, alive in shadow.</p>
         <p class="lead">Black & grey surrealism that explores decay, devotion, and divine anatomy—realism carved from ruin, shadow, and ritual.</p>
         <div class="rule"></div>
@@ -263,7 +267,7 @@
     <div class="wrap">
       <div class="section-body align-center">
         <div class="section-kicker">WORK</div>
-        <h2 class="goth-title"><span class="orn">†</span><span>Portfolio</span><span class="orn">†</span></h2>
+        <h2 class="goth-title reveal"><span class="orn">†</span><span>Portfolio</span><span class="orn">†</span></h2>
         <p class="lead">Cathedrals of skin — high‑contrast, hand‑built, hauntingly real.</p>
       </div>
       <div class="grid" style="margin-top:16px">
@@ -285,7 +289,7 @@
     <div class="wrap">
       <div class="section-body align-center">
         <div class="section-kicker">BOOKING</div>
-        <h2 class="goth-title"><span class="orn">—</span><span>The Rite</span><span class="orn">—</span></h2>
+        <h2 class="goth-title reveal"><span class="orn">—</span><span>The Rite</span><span class="orn">—</span></h2>
         <div class="steps" style="margin-top:10px">
           <div class="step"><div class="n">1 · Consult</div><p>Concept · Placement · Budget · References.</p></div>
           <div class="step"><div class="n">2 · Design</div><p>Custom sketch · Feedback · Deposit confirms.</p></div>
@@ -307,7 +311,7 @@
     <div class="wrap split">
       <div class="copy">
         <div class="section-kicker">STUDIO</div>
-        <h2 class="goth-title"><span class="orn">†</span><span>The Lab</span><span class="orn">†</span></h2>
+        <h2 class="goth-title reveal"><span class="orn">†</span><span>The Lab</span><span class="orn">†</span></h2>
         <p>Private ateliers — <strong>Stockholm · NYC · LA</strong>. Clean, focused, ritual space.</p>
         <p class="lead">Partners & tools: <em>Kwadron</em>, <em>Bishop Rotary</em>, <em>Inkeeze</em>, <em>Tattoo Armour</em>, <em>Killer Ink Tattoo</em>.</p>
       </div>
@@ -321,7 +325,7 @@
     <div class="wrap">
       <div class="section-body align-center">
         <div class="section-kicker">TESTIMONIALS</div>
-        <h2 class="goth-title"><span class="orn">—</span><span>Echoes from the Flesh</span><span class="orn">—</span></h2>
+        <h2 class="goth-title reveal"><span class="orn">—</span><span>Echoes from the Flesh</span><span class="orn">—</span></h2>
         <div class="h-scroll" style="margin-top:14px;text-align:left">
           <div class="tcard"><p>“He turned my nightmare into a masterpiece.”</p><span>— A.</span></div>
           <div class="tcard"><p>“Precision. Patience. Madness.”</p><span>— J.</span></div>
@@ -345,7 +349,7 @@
     <div class="wrap split">
       <div class="copy">
         <div class="section-kicker">CONTACT</div>
-        <h2 class="goth-title"><span class="orn">†</span><span>Contact</span><span class="orn">†</span></h2>
+        <h2 class="goth-title reveal"><span class="orn">†</span><span>Contact</span><span class="orn">†</span></h2>
         <p class="lead">Submit your vision — the Butcher will reply.</p>
         <div class="rule"></div>
         <p>Email: <a href="mailto:mumia.tattoo.artist@gmail.com">mumia.tattoo.artist@gmail.com</a></p>
@@ -475,6 +479,21 @@
     closeBtn && closeBtn.addEventListener('click', close);
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') close(); });
     lb && lb.addEventListener('click', (e)=>{ if(e.target===lb) close(); });
+  })();
+</script>
+<script>
+  // Reveal on scroll (kicker + all h2)
+  (function(){
+    const els = Array.from(document.querySelectorAll('.reveal'));
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    },{threshold:0.2, rootMargin:'0px 0px -10% 0px'});
+    // observe all
+    els.forEach(el=>io.observe(el));
+    // ensure hero elements animate immediately on load
+    window.addEventListener('DOMContentLoaded', ()=>{
+      document.querySelectorAll('.hero .reveal').forEach(el=>el.classList.add('in'));
+    });
   })();
 </script>
 </body>
